@@ -1,16 +1,42 @@
 
-// Simple Task Manager
+// Simple task manager app
 class TaskManager {
     constructor() {
-        this.tasks = [];
+        this.tasks = [
+            {
+                id: 1,
+                title: 'Préparer la présentation',
+                details: 'Créer les slides pour la réunion client',
+                author: 'Marie Dupont',
+                assignee: 'Jean Martin',
+                status: 'pending'
+            },
+            {
+                id: 2,
+                title: 'Réviser le code',
+                details: 'Vérifier la qualité du code avant la mise en production',
+                author: 'Pierre Durand',
+                assignee: 'Sophie Moreau',
+                status: 'in-progress'
+            },
+            {
+                id: 3,
+                title: 'Tester l\'application',
+                details: 'Effectuer les tests fonctionnels complets',
+                author: 'Lisa Chen',
+                assignee: 'Marc Leroy',
+                status: 'completed'
+            }
+        ];
+        this.filteredTasks = [...this.tasks];
         this.currentTaskId = null;
         this.init();
     }
 
     init() {
-        this.animatePageLoad();
         this.bindEvents();
         this.loadTasks();
+        this.animatePageLoad();
     }
 
     animatePageLoad() {
@@ -28,6 +54,12 @@ class TaskManager {
             opacity: 0,
             ease: 'power2.out'
         }, '-=0.3')
+        .from('.search-container', {
+            duration: 0.5,
+            y: 20,
+            opacity: 0,
+            ease: 'power2.out'
+        }, '-=0.2')
         .from('.tasks-container', {
             duration: 0.5,
             y: 30,
@@ -37,10 +69,17 @@ class TaskManager {
     }
 
     bindEvents() {
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            this.filterTasks(e.target.value);
+        });
+
+        // New task button
         document.getElementById('newTaskBtn').addEventListener('click', () => {
             this.openTaskModal();
         });
 
+        // Close modal
         document.getElementById('closeModal').addEventListener('click', () => {
             this.closeTaskModal();
         });
@@ -49,17 +88,35 @@ class TaskManager {
             this.closeTaskModal();
         });
 
+        // Modal overlay click
         document.getElementById('taskModal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) {
                 this.closeTaskModal();
             }
         });
 
+        // Task form submission
         document.getElementById('taskForm').addEventListener('submit', (e) => {
             this.handleTaskSubmit(e);
         });
 
+        // Form input animations
         this.setupInputAnimations();
+    }
+
+    filterTasks(searchTerm) {
+        if (!searchTerm) {
+            this.filteredTasks = [...this.tasks];
+        } else {
+            this.filteredTasks = this.tasks.filter(task => 
+                task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                task.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                task.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                task.assignee.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                this.getStatusText(task.status).toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        this.loadTasks();
     }
 
     setupInputAnimations() {
@@ -99,20 +156,34 @@ class TaskManager {
         const tasksBody = document.getElementById('tasksBody');
         const emptyState = document.getElementById('emptyState');
         
-        if (this.tasks.length === 0) {
+        if (this.filteredTasks.length === 0) {
             emptyState.style.display = 'block';
             tasksBody.innerHTML = '';
+            
+            // Update empty state message based on search
+            const searchInput = document.getElementById('searchInput');
+            const emptyStateTitle = emptyState.querySelector('h3');
+            const emptyStateDesc = emptyState.querySelector('p');
+            
+            if (searchInput.value) {
+                emptyStateTitle.textContent = 'Aucun résultat';
+                emptyStateDesc.textContent = 'Aucune tâche ne correspond à votre recherche';
+            } else {
+                emptyStateTitle.textContent = 'Aucune tâche';
+                emptyStateDesc.textContent = 'Commencez par créer votre première tâche';
+            }
             return;
         }
         
         emptyState.style.display = 'none';
         tasksBody.innerHTML = '';
         
-        this.tasks.forEach(task => {
+        this.filteredTasks.forEach(task => {
             const row = this.createTaskRow(task);
             tasksBody.appendChild(row);
         });
         
+        // Animate rows
         gsap.from('.tasks-table tbody tr', {
             duration: 0.4,
             y: 20,
@@ -155,6 +226,7 @@ class TaskManager {
         const form = document.getElementById('taskForm');
         
         if (task) {
+            // Edit mode
             modalTitle.textContent = 'Modifier la tâche';
             document.getElementById('taskTitle').value = task.title;
             document.getElementById('taskDetails').value = task.details;
@@ -162,13 +234,17 @@ class TaskManager {
             document.getElementById('taskAssignee').value = task.assignee;
             document.getElementById('taskStatus').value = task.status;
             this.currentTaskId = task.id;
+            
+            // Trigger label animations for filled inputs
             this.animateFilledLabels();
         } else {
+            // Create mode
             modalTitle.textContent = 'Nouvelle tâche';
             form.reset();
             this.currentTaskId = null;
         }
         
+        // Show modal with animation
         modal.classList.add('active');
         
         gsap.fromTo(modal, 
@@ -180,6 +256,11 @@ class TaskManager {
             { scale: 0.9, y: 20 },
             { duration: 0.3, scale: 1, y: 0, ease: 'back.out(1.2)' }
         );
+        
+        // Focus first input
+        setTimeout(() => {
+            document.getElementById('taskTitle').focus();
+        }, 300);
     }
 
     animateFilledLabels() {
@@ -232,23 +313,31 @@ class TaskManager {
             details,
             author,
             assignee,
-            status
+            status,
+            createdAt: new Date().toISOString()
         };
         
         if (this.currentTaskId) {
+            // Update existing task
             const taskIndex = this.tasks.findIndex(t => t.id === this.currentTaskId);
             if (taskIndex !== -1) {
                 this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...taskData };
             }
         } else {
+            // Create new task
             taskData.id = Date.now();
             this.tasks.push(taskData);
         }
         
+        // Update filtered tasks and reload
+        const searchTerm = document.getElementById('searchInput').value;
+        this.filterTasks(searchTerm);
+        
+        // Close modal
         this.closeTaskModal();
-        setTimeout(() => {
-            this.loadTasks();
-        }, 300);
+        
+        // Show success message
+        this.showSuccess(this.currentTaskId ? 'Tâche modifiée avec succès' : 'Tâche créée avec succès');
     }
 
     editTask(taskId) {
@@ -259,24 +348,71 @@ class TaskManager {
     }
 
     deleteTask(taskId) {
-        const taskIndex = this.tasks.findIndex(t => t.id === taskId);
-        if (taskIndex !== -1) {
-            this.tasks.splice(taskIndex, 1);
-            
-            const row = document.querySelector(`button[onclick="taskManager.deleteTask(${taskId})"]`).closest('tr');
-            gsap.to(row, {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+            const taskIndex = this.tasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                this.tasks.splice(taskIndex, 1);
+                
+                // Update filtered tasks and reload
+                const searchTerm = document.getElementById('searchInput').value;
+                this.filterTasks(searchTerm);
+                
+                this.showSuccess('Tâche supprimée avec succès');
+            }
+        }
+    }
+
+    showSuccess(message) {
+        this.showNotification(message, 'success');
+    }
+
+    showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existing = document.querySelector('.notification');
+        if (existing) {
+            existing.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            max-width: 300px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            ${type === 'error' ? 'background: #FF3B30;' : 'background: #34C759;'}
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        gsap.fromTo(notification, 
+            { opacity: 0, x: 50 },
+            { duration: 0.3, opacity: 1, x: 0, ease: 'power2.out' }
+        );
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            gsap.to(notification, {
                 duration: 0.3,
                 opacity: 0,
-                x: -50,
+                x: 50,
                 ease: 'power2.in',
-                onComplete: () => {
-                    this.loadTasks();
-                }
+                onComplete: () => notification.remove()
             });
-        }
+        }, 3000);
     }
 }
 
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.taskManager = new TaskManager();
 });
