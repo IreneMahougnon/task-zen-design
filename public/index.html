@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskZen - Gestionnaire de tâches</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"></div>
+                    <h1>TaskZen</h1>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn-secondary" id="userBtn">
+                        <span id="userName">Utilisateur</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h2>Mes Tâches</h2>
+                <button class="btn-primary" id="newTaskBtn">
+                    <span>+</span>
+                    Nouvelle tâche
+                </button>
+            </div>
+
+            <!-- Tasks Table -->
+            <div class="tasks-container">
+                <div class="table-wrapper">
+                    <table class="tasks-table" id="tasksTable">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Détails</th>
+                                <th>Auteur</th>
+                                <th>Responsable</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasksBody">
+                            <!-- Tasks will be inserted here -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-icon">📝</div>
+                        <h3>Aucune tâche</h3>
+                        <p>Commencez par créer votre première tâche</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nouvelle tâche</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            
+            <form class="task-form" id="taskForm">
+                <div class="form-group">
+                    <input type="text" id="taskTitle">
+                    <label for="taskTitle">Titre de la tâche</label>
+                </div>
+                
+                <div class="form-group">
+                    <textarea id="taskDetails" rows="4"></textarea>
+                    <label for="taskDetails">Détails</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" id="taskAuthor">
+                    <label for="taskAuthor">Auteur</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" id="taskAssignee">
+                    <label for="taskAssignee">Responsable</label>
+                </div>
+                
+                <div class="form-group">
+                    <select id="taskStatus">
+                        <option value="">Sélectionner un statut</option>
+                        <option value="pending">En attente</option>
+                        <option value="in-progress">En cours</option>
+                        <option value="completed">Terminée</option>
+                    </select>
+                    <label for="taskStatus">Statut</label>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Annuler</button>
+                    <button type="submit" class="btn-primary" id="saveTaskBtn">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
